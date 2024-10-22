@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*{
+  color: #fff;
+}
+body{
+  background-color: #111;
+}
+#TaskList::-webkit-scrollbar {
+  display: none;
+}
+/* Chrome, Safari, Edge, Opera */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1); /* Inverts the color of the icon */
+  cursor: pointer;
+}
+
+/* Firefox */
+input[type="date"]::-moz-focus-inner {
+  border: 0;
+}
