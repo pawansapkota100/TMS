@@ -13,7 +13,7 @@ const Header = ({ data }) => {
         <span className="text-3xl font-semibold"> 👋</span>
       </h1>
       <button
-        // onClick={() => localStorage.clear()}
+        onClick={() => localStorage.clear()}
         className="bg-red-600 text-white px-4 py-2 rounded text-lg font-medium"
       >
         Logout

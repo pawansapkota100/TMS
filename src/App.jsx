@@ -1,71 +1,71 @@
 import React, { useContext, useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom"; // Updated imports
 import Login from "./components/Auth/Login";
 import EmployeeDashboard from "./components/Dashboard/EmployeeDashboard";
 import AdminDashboard from "./components/Dashboard/AdminDashboard";
 import { AuthContext } from "./context/authprovider";
-import { setLocalStorage } from "./utils/LocalStorage";
 
 const App = () => {
-  const [user, setUser] = useState(null);
-  const [loggedinUser, setLoggedinUser] = useState(null);
-  const authdata = useContext(AuthContext);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState("");
 
-  useEffect(() => {
-    setLocalStorage();
-  }, []);
-
-  useEffect(() => {
-    if (authdata) {
-      const loggedInUser = localStorage.getItem("loggedInUser");
-      if (loggedInUser) {
-        setUser(loggedInUser.role);
-      }
-    }
-  }, [authdata]);
-
-  const handleLogin = (email, password) => {
-    if (authdata && authdata.admin) {
-      // Check admin credentials first
-      const admin = authdata.admin.find(
-        (e) => email === e.email && password === e.password
-      );
-      if (admin) {
-        setUser("admin");
-        setLoggedinUser(admin);
-        localStorage.setItem("loggedInUser", JSON.stringify({ role: "admin" }));
-        return; // Exit the function if admin credentials are found
-      }
-    }
-
-    if (authdata && authdata.employees) {
-      // Check employee credentials if admin is not found
-      const employee = authdata.employees.find(
-        (e) => email === e.email && password === e.password
-      );
-      if (employee) {
-        setUser("employee");
-        setLoggedinUser(employee);
-        localStorage.setItem(
-          "loggedInUser",
-          JSON.stringify({ role: "employee", email: employee.email })
-        );
-        return; // Exit the function if employee credentials are found
-      }
-    }
-
-    // If neither admin nor employee is found
-    alert("Invalid email or password");
+  const handleLogin = (data) => {
+    setIsAuthenticated(true);
+    setUserRole(data.role); // Assuming login data has a 'role' field
+    localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("user_role", data.role);
   };
 
+  useEffect(() => {
+    const accessToken = localStorage.getItem("access_token");
+    const storedRole = localStorage.getItem("user_role");
+    if (accessToken && storedRole) {
+      setIsAuthenticated(true);
+      setUserRole(storedRole);
+    }
+  }, []);
+
   return (
-    <>
-      {!user ? <Login handleLogin={handleLogin} /> : null}
-      {user === "admin" ? (
-        <AdminDashboard />
-      ) : user == "employee" ? (
-        <EmployeeDashboard data={loggedinUser} />
-      ) : null}
-    </>
+    <Router>
+      <Routes>
+        {/* Redirect to login if not authenticated */}
+        <Route
+          path="/"
+          element={
+            !isAuthenticated ? (
+              <Login handleLogin={handleLogin} />
+            ) : userRole === "admin" ? (
+              <Navigate to="/admin-dashboard" />
+            ) : (
+              <Navigate to="/employee-dashboard" />
+            )
+          }
+        />
+        {/* Define admin and employee dashboard routes */}
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
+        {/* Catch-all route to redirect to the appropriate dashboard */}
+        <Route
+          path="*"
+          element={
+            isAuthenticated ? (
+              userRole === "admin" ? (
+                <Navigate to="/admin-dashboard" />
+              ) : (
+                <Navigate to="/employee-dashboard" />
+              )
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+      </Routes>
+    </Router>
   );
 };
 
