@@ -11,6 +11,12 @@ const App = () => {
   const authdata = useContext(AuthContext);
 
   useEffect(() => {
+    const loggedInUser = localStorage.getItem("loggedInUser");
+    if (loggedInUser) {
+      const userData = JSON.parse(loggedInUser);
+      setUser(userData.role);
+      setLoggedinUser(userData); // Store logged-in user data
+    }
     setLocalStorage();
   }, []);
 
@@ -56,14 +62,19 @@ const App = () => {
     // If neither admin nor employee is found
     alert("Invalid email or password");
   };
+  const handleLogout = () => {
+    setUser(null);
+    setLoggedinUser(null);
+    localStorage.removeItem("loggedInUser"); // Clear the logged-in user from local storage
+  };
 
   return (
     <>
       {!user ? <Login handleLogin={handleLogin} /> : null}
       {user === "admin" ? (
-        <AdminDashboard />
+        <AdminDashboard onLogout={handleLogout} />
       ) : user == "employee" ? (
-        <EmployeeDashboard data={loggedinUser} />
+        <EmployeeDashboard data={loggedinUser} onLogout={handleLogout} />
       ) : null}
     </>
   );
